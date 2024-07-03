@@ -1,12 +1,11 @@
 import express from "express";
-import { register, login, updateRole, getUserProfile } from "../controllers/authController";
-import { protect, admin } from "../middleware/authMiddleware";
+import { register, login, changePassword } from "../controllers/authController";
+import { protect } from "../middleware/authMiddleware";
 
-const router = express.Router();
+const authRoutes = express.Router();
 
-router.post("/register", register);
-router.post("/login", login);
-router.put("/role", protect, admin, updateRole);
-router.get("/profile", protect, getUserProfile);
+authRoutes.post("/register", register);
+authRoutes.post("/login", login);
+authRoutes.post("/change-password", changePassword, protect);
 
-export default router;
+export default authRoutes;

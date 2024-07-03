@@ -1,39 +1,45 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import validator from 'validator';
-import User, { IUser } from '../models/User';
-import generateToken from '../utils/generateToken';
+import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import validator from "validator";
+import User, { IUser } from "../models/User";
+import generateToken from "../utils/generateToken";
+import { sendAuthError, sendBadRequest, sendServerError, sendSuccess } from "../utils/responseHandler";
 
 const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
 
   const isValidUsername = validator.isLength(username, { min: 3, max: 30 }) && validator.isAlphanumeric(username);
   const isValidEmail = validator.isEmail(email);
-  const isValidPassword = validator.isLength(password, { min: 6 }) && validator.isStrongPassword(password, {
-    minLength: 6,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-    minSymbols: 0,
-  });
+  const isValidPassword =
+    validator.isLength(password, { min: 6 }) &&
+    validator.isStrongPassword(password, {
+      minLength: 6,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 0,
+    });
 
   if (!isValidUsername) {
-    return res.status(400).json({ message: 'Username must be alphanumeric and between 3 to 30 characters long' });
+    sendBadRequest(res, "Your name should be between 3 and 30 characters long, unless you're a superhero—then it's up to you!");
+    return;
   }
 
   if (!isValidEmail) {
-    return res.status(400).json({ message: 'Invalid email address' });
+    sendBadRequest(res, "Looks like your email took a detour to the wrong address, buddy!");
+    return;
   }
 
   if (!isValidPassword) {
-    return res.status(400).json({ message: 'Password must be at least 6 characters long, contain at least one lowercase letter, one uppercase letter, and one number' });
+    sendBadRequest(res, "Your password needs to be at least 6 characters long, with at least one lowercase letter, one uppercase letter, and one number. Otherwise, hackers will be partying with your account!");
+    return;
   }
 
   try {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,19 +48,18 @@ const register = async (req: Request, res: Response) => {
       username,
       email,
       password: hashedPassword,
-      role: 'USER',
+      role: "USER",
     });
 
     const createdUser = await user.save();
 
-    res.status(201).json({
-      _id: createdUser._id,
-      username: createdUser.username,
-      email: createdUser.email,
+    sendSuccess(res, {
+      message: "User created successfully",
       role: createdUser.role,
     });
+    return;
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    sendServerError(res, error as Error);
   }
 };
 
@@ -67,56 +72,48 @@ const login = async (req: Request, res: Response) => {
     if (user && (await bcrypt.compare(password, user.password))) {
       const token = generateToken(user._id);
 
-      res.cookie('token', token, {
+      res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === "production",
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
-      res.json({
+      sendSuccess(res, {
         _id: user._id,
         username: user.username,
         email: user.email,
         role: user.role,
         token,
       });
+      return;
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      sendAuthError(res, "It looks like your email or password has taken a wrong");
+      return;
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    sendServerError(res, error as Error);
+    return;
   }
 };
 
-const updateRole = async (req: Request, res: Response) => {
-  const { userId, role } = req.body;
+const changePassword = async (req: Request, res: Response) => {
+  const { email, currentPassword, newPassword } = req.body;
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findOne({ email });
 
-    if (user) {
-      user.role = role;
-      const updatedUser = await user.save();
-      res.json(updatedUser);
+    if (user && (await bcrypt.compare(currentPassword, user.password))) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      await user.save();
+
+      sendSuccess(res, "You've changed your password—now, commit it to memory!");
     } else {
-      res.status(404).json({ message: 'User not found' });
+      sendAuthError(res, "Oops! Looks like your email or password had a little mix-up!");
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    sendServerError(res, error as Error);
   }
 };
 
-const getUserProfile = async (req: Request, res: Response) => {
-  try {
-    const user = await User.findById(req.user!._id).select('-password');
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ message: 'User not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-export { register, login, updateRole, getUserProfile };
+export { register, login, changePassword };

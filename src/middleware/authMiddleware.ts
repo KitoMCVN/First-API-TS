@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User";
+import { sendAuthError } from "../utils/responseHandler";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -23,10 +24,11 @@ const protect = async (req: Request, res: Response, next: NextFunction) => {
       req.user = (await User.findById(decoded.id).select("-password")) || undefined;
       next();
     } catch (error) {
-      res.status(401).json({ message: "Not authorized, token failed" });
+      sendAuthError(res, "Looks like you don't have the secret handshake for access!");
+      return;
     }
   } else {
-    res.status(401).json({ message: "Not authorized, no token" });
+    sendAuthError(res, "No token, no magic portal for you!");
   }
 };
 
@@ -34,7 +36,7 @@ const admin = (req: Request, res: Response, next: NextFunction) => {
   if (req.user && req.user.role === "ADMIN") {
     next();
   } else {
-    res.status(401).json({ message: "Not authorized as an admin" });
+    sendAuthError(res, "Not authorized as an admin");
   }
 };
 

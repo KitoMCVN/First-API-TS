@@ -1,11 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import routes from "./routes";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-
-dotenv.config();
+import config from "./config";
 
 const app = express();
 
@@ -13,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 mongoose
-  .connect(process.env.MONGODB_URI! || "")
+  .connect(config.MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -23,8 +21,6 @@ mongoose
 
 app.use("/", routes);
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(config.PORT, () => {
+  console.log(`Server running on port ${config.PORT}`);
 });
