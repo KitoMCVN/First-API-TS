@@ -9,6 +9,7 @@ export const apikeys = (req: Request, res: Response, next: NextFunction) => {
 
   if (!apiKey) {
     sendAuthError(res, "Oops! Looks like the API key is missing!");
+    return;
   }
 
   const db = new sqlite3.Database(dbPath);

@@ -1,10 +1,10 @@
 import express from "express";
-import { protect, admin } from "../middleware/authMiddleware";
+import { admin } from "../middleware/authMiddleware";
 import { updateRole, getUserProfile } from "../controllers/userController";
 
 const userRoutes = express.Router();
 
-userRoutes.put("/role", protect, admin, updateRole);
-userRoutes.get("/profile", protect, getUserProfile);
+userRoutes.put("/role", admin, updateRole);
+userRoutes.get("/profile", getUserProfile);
 
 export default userRoutes;

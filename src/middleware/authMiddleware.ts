@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User";
 import { sendAuthError } from "../utils/responseHandler";
+import config from "../config";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -12,15 +13,13 @@ declare module "express-serve-static-core" {
 const protect = async (req: Request, res: Response, next: NextFunction) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.token) {
+  if (req.cookies.token) {
     token = req.cookies.token;
   }
 
   if (token) {
     try {
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+      const decoded: any = jwt.verify(token, config.JWT);
       req.user = (await User.findById(decoded.id).select("-password")) || undefined;
       next();
     } catch (error) {
