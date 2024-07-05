@@ -1,22 +1,21 @@
 {
-  "name": "toptal-hacking-jwt",
+  "name": "fist_api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-dev src/index.ts"
+    "start": "ts-node-dev src/index.ts",
+    "build": "tsc",
+    "start:prod": "node build/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GonzaloHirsch/toptal-hacking-jwt.git"
+    "url": ""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/GonzaloHirsch/toptal-hacking-jwt/issues"
-  },
-  "homepage": "https://github.com/GonzaloHirsch/toptal-hacking-jwt#readme",
+  "homepage": "",
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.7",
