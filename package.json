@@ -10,12 +10,11 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/KitoMCVN/First-Api-TS.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "KitoMC",
   "license": "ISC",
-  "homepage": "",
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.7",
