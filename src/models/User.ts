@@ -9,6 +9,8 @@ export interface IUser extends Document {
   nickname?: string;
   dateOfBirth?: Date;
   phoneNumber?: string;
+  verified: boolean;
+  verificationToken: string | undefined;
 }
 
 const userSchema: Schema = new Schema({
@@ -20,6 +22,8 @@ const userSchema: Schema = new Schema({
   nickname: { type: String },
   dateOfBirth: { type: Date },
   phoneNumber: { type: String },
+  verified: { type: Boolean, default: false },
+  verificationToken: { type: String, required: true, default: "" },
 });
 
 const User = mongoose.model<IUser>("User", userSchema);
